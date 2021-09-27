@@ -2,7 +2,31 @@
 #include <stdio.h>
 
 void
-hello ()
+show_jobs (process_table *self)
 {
-  printf ("Hello, C!\n");
+}
+
+void
+kill_job (process_table *self, int pid)
+{
+}
+
+void
+resume_job (process_table *self, int pid)
+{
+}
+
+void
+suspend_job (process_table *self, int pid)
+{
+}
+
+void
+wait_job (process_table *self, int pid)
+{
+}
+
+void
+new_job (process_table *self, input_options *options)
+{
 }

@@ -8,9 +8,9 @@ long_long_job (long long max_seconds, long long num)
   time_t start = time (NULL);
 
   int k = 0;
-  for (long long i = 0; i < num; i++)
+  for (long long i = 0; i < num; ++i)
     {
-      for (long long j = 0; j < num; j++)
+      for (long long j = 0; j < num; ++j)
         {
           k += 20;
           time_t diff = (time (NULL) - start);

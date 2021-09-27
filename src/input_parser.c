@@ -1,4 +1,5 @@
 #include "main.h"
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,17 +41,29 @@ get_input (input_options *options)
           return;
         }
 
+      // trim newlines
+      arg[strcspn (arg, "\n")] = '\0';
+
       strncpy (options->argv[options->argc++], arg, MAX_LENGTH);
       arg = strtok (NULL, " ");
     }
 
-  for (int i = 0; i < options->argc; ++i)
+  free (line); // getline allocates memory
+}
+
+int
+get_int (input_options *options, int *integer)
+{
+  if (options->argc < 2)
     {
-      if (options->argv[i][0] != '\n')
-        {
-          printf ("%s\n", options->argv[i]);
-        }
+      return 0;
     }
 
-  free (line); // getline allocates memory
+  char *int_str = options->argv[1];
+  if (strspn (int_str, "0123456789") != strlen (int_str))
+    {
+      return 0;
+    }
+  sscanf (int_str, "%d%*c", integer);
+  return 1;
 }

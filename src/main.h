@@ -20,11 +20,21 @@ typedef struct
 
 typedef struct
 {
+  char cmd[LINE_LENGTH];
   int argc;
   char argv[MAX_ARGS][MAX_LENGTH];
 } input_options;
 
-void hello ();
+// process table functions
+void show_jobs (process_table *self);
+void kill_job (process_table *self, int pid);
+void resume_job (process_table *self, int pid);
+void suspend_job (process_table *self, int pid);
+void wait_job (process_table *self, int pid);
+void new_job (process_table *self, input_options *options);
+
+// parser functions
 void get_input (input_options *options);
+int get_int (input_options *options, int *integer);
 
 #endif /* SRC_MAIN */
