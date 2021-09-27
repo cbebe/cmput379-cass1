@@ -7,18 +7,22 @@
 #define input_error(line, message)                                            \
   do                                                                          \
     {                                                                         \
-      fprintf (stderr, "Invalid line length\n");                              \
+      fprintf (stderr, message);                                              \
       free (line);                                                            \
-      return;                                                                 \
+      return 0;                                                               \
     }                                                                         \
   while (0)
 
-void
+int
 get_input (struct input_options *options)
 {
   char *line = NULL;
   size_t len = LINE_LENGTH;
   ssize_t line_size = getline (&line, &len, stdin);
+
+  // only the newline is present
+  if (line_size == 1)
+    return 0;
 
   if (line_size > LINE_LENGTH)
     input_error (line, "Invalid line length\n");
@@ -35,7 +39,7 @@ get_input (struct input_options *options)
       if (arg_length > MAX_LENGTH)
         input_error (line, "Invalid argument length\n");
 
-      if (options->argc > MAX_ARGS)
+      if (options->argc > MAX_ARGS - 1)
         input_error (line, "Invalid argument count\n");
 
       // trim newlines
@@ -47,6 +51,7 @@ get_input (struct input_options *options)
 
   strncpy (options->cmd, line, LINE_LENGTH);
   free (line); // getline allocates memory
+  return 1;
 }
 
 int
@@ -131,4 +136,27 @@ delete_cmd_options (struct cmd_options *options)
 
   free (options->cmd);
   free (options);
+}
+
+// used for debugging
+void
+print_cmd_options (struct cmd_options *options)
+{
+  printf ("Command: %s\n", options->cmd);
+  printf ("Args: ");
+  for (int i = 0; i < options->argc; ++i)
+    {
+      printf ("%s ", options->argv[i]);
+    }
+  printf ("\nInput: ");
+  for (int i = 0; i < options->ifc; ++i)
+    {
+      printf ("%s ", options->ifv[i]);
+    }
+  printf ("\nOutput: ");
+  for (int i = 0; i < options->ofc; ++i)
+    {
+      printf ("%s ", options->ofv[i]);
+    }
+  printf ("\n");
 }

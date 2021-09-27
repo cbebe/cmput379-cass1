@@ -6,8 +6,6 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-void print_cmd_options (struct cmd_options *options);
-
 /**
  * Returns from function if process pointer is null
  */
@@ -153,38 +151,15 @@ new_job (struct process_table *self, struct cmd_options *options)
   if (options->bg == BACKGROUND)
     {
       // process run in background, add to table
-      struct process p = { .pid = pid, .status = RUNNING, .cmd = "" };
-      printf ("%s\n", options->cmd);
-      strncpy (p.cmd, options->cmd, LINE_LENGTH);
-      printf ("%s\n", p.cmd);
-      self->processes[self->num_processes++] = p;
+      struct process *p = &self->processes[self->num_processes++];
+      p->pid = pid;
+      p->status = RUNNING;
+      strncpy (p->cmd, options->cmd, LINE_LENGTH);
     }
   else
     {
+      // wait for process, don't add to table
       int status = 0;
       waitpid (pid, &status, 0);
     }
-}
-
-// used for debugging
-void
-print_cmd_options (struct cmd_options *options)
-{
-  printf ("Command: %s\n", options->cmd);
-  printf ("Args: ");
-  for (int i = 0; i < options->argc; ++i)
-    {
-      printf ("%s ", options->argv[i]);
-    }
-  printf ("\nInput: ");
-  for (int i = 0; i < options->ifc; ++i)
-    {
-      printf ("%s ", options->ifv[i]);
-    }
-  printf ("\nOutput: ");
-  for (int i = 0; i < options->ofc; ++i)
-    {
-      printf ("%s ", options->ofv[i]);
-    }
-  printf ("\n");
 }

@@ -70,12 +70,11 @@ void new_job (struct process_table *self, struct cmd_options *options);
 void print_resource_usage ();
 
 // parser functions
-void get_input (struct input_options *options);
+int get_input (struct input_options *options);
 int get_cmd_options (struct input_options *input, struct cmd_options *cmd);
 int get_int (struct input_options *options, int *integer);
-
-// process functions
 struct cmd_options *new_cmd_options ();
 void delete_cmd_options (struct cmd_options *options);
+void print_cmd_options (struct cmd_options *options);
 
 #endif /* SRC_MAIN */

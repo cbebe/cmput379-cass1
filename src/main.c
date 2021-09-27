@@ -22,14 +22,12 @@ run (struct process_table *table)
   printf ("shell379> ");
   fflush (stdout);
   struct input_options options = { .argc = 0, .argv = {} };
-  get_input (&options);
-
-  char *command = options.argv[0];
-
-  if (match (command, ""))
+  if (!get_input (&options))
     {
       return;
     }
+
+  char *command = options.argv[0];
 
   if (match (command, "exit"))
     {
