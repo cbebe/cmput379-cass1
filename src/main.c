@@ -1,5 +1,24 @@
 #include <stdio.h>
+#include <stdlib.h>
 
-int main() {
-	printf("Hello, C!\n");
+#include "main.h"
+
+void
+run ()
+{
+  // print prompt
+  printf ("shell379> ");
+  fflush (stdout);
+  input_options i = { .argc = 0, .argv = {} };
+
+  get_input (&i);
+}
+
+int
+main ()
+{
+  while (1)
+    {
+      run ();
+    }
 }

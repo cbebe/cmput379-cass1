@@ -1,2 +1,10 @@
+# build directory
 build
+
+# executables
 shell379
+runner
+sleeper
+
+# editor settings
+.vscode
