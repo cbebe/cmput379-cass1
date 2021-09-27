@@ -12,22 +12,32 @@
 #define require_int(options, pid, message)                                    \
   if (!get_int (options, pid))                                                \
     {                                                                         \
-      fprintf (stderr, message);                                              \
-      return;                                                                 \
+      throw (message);                                                        \
     }
 
 void
-run (process_table *table)
+run (struct process_table *table)
 {
   // print prompt
   printf ("shell379> ");
   fflush (stdout);
-  input_options options = { .argc = 0, .argv = {} };
+  struct input_options options = { .argc = 0, .argv = {} };
   get_input (&options);
 
   char *command = options.argv[0];
 
-  if (match (command, "jobs"))
+  if (match (command, ""))
+    {
+      return;
+    }
+
+  if (match (command, "exit"))
+    {
+      printf ("Resources used\n");
+      print_resource_usage ();
+      exit (0);
+    }
+  else if (match (command, "jobs"))
     {
       show_jobs (table);
     }
@@ -63,14 +73,30 @@ run (process_table *table)
     }
   else
     {
-      new_job (table, &options);
+      struct cmd_options *cmd = new_cmd_options ();
+      if (!get_cmd_options (&options, cmd))
+        {
+          fprintf (stderr, "Invalid input of '&'\n");
+          delete_cmd_options (cmd);
+          return;
+        }
+
+      if (cmd->argc == 0)
+        {
+          fprintf (stderr, "No command given\n");
+          delete_cmd_options (cmd);
+          return;
+        }
+
+      new_job (table, cmd);
+      delete_cmd_options (cmd);
     }
 }
 
 int
 main ()
 {
-  process_table table = { .num_processes = 0, .processes = {} };
+  struct process_table table = { .num_processes = 0, .processes = {} };
   while (1)
     {
       run (&table);

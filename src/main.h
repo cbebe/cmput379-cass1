@@ -6,35 +6,76 @@
 #define MAX_ARGS 7        // Max number of arguments to a command
 #define MAX_PT_ENTRIES 32 // Max entries in the Process Table
 
-typedef struct
+#define throw(message)                                                        \
+  do                                                                          \
+    {                                                                         \
+      fprintf (stderr, message);                                              \
+      return;                                                                 \
+    }                                                                         \
+  while (0)
+
+enum process_status
+{
+  // process is running in background
+  RUNNING = 'R',
+  // process in background is suspended
+  SUSPENDED = 'S',
+};
+
+struct process
 {
   int pid;
+  enum process_status status;
   char cmd[LINE_LENGTH];
-} process;
+};
 
-typedef struct
+struct process_table
 {
   int num_processes;
-  process processes[MAX_PT_ENTRIES];
-} process_table;
+  struct process processes[MAX_PT_ENTRIES];
+};
 
-typedef struct
+enum process_type
+{
+  FOREGROUND = 0,
+  BACKGROUND = 1,
+};
+
+struct cmd_options
+{
+  char *cmd;            // the entire command
+  int ifc;              // input file count
+  char *ifv[MAX_ARGS];  // input file vector
+  int ofc;              // output file count
+  char *ofv[MAX_ARGS];  // output file vector
+  int argc;             // argument count
+  char *argv[MAX_ARGS]; // argument vector
+  enum process_type bg;
+};
+
+struct input_options
 {
   char cmd[LINE_LENGTH];
   int argc;
   char argv[MAX_ARGS][MAX_LENGTH];
-} input_options;
+};
 
 // process table functions
-void show_jobs (process_table *self);
-void kill_job (process_table *self, int pid);
-void resume_job (process_table *self, int pid);
-void suspend_job (process_table *self, int pid);
-void wait_job (process_table *self, int pid);
-void new_job (process_table *self, input_options *options);
+void show_jobs (struct process_table *self);
+void kill_job (struct process_table *self, int pid);
+void resume_job (struct process_table *self, int pid);
+void suspend_job (struct process_table *self, int pid);
+void wait_job (struct process_table *self, int pid);
+void new_job (struct process_table *self, struct cmd_options *options);
+void print_resource_usage ();
 
 // parser functions
-void get_input (input_options *options);
-int get_int (input_options *options, int *integer);
+void get_input (struct input_options *options);
+int get_cmd_options (struct input_options *input, struct cmd_options *cmd);
+int get_int (struct input_options *options, int *integer);
+
+// process functions
+struct cmd_options *new_cmd_options ();
+void delete_cmd_options (struct cmd_options *options);
 
 #endif /* SRC_MAIN */
