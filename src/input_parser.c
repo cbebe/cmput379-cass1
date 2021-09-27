@@ -13,6 +13,8 @@
     }                                                                         \
   while (0)
 
+#define remove_newline(line) line[strcspn (line, "\n")] = '\0'
+
 int
 get_input (struct input_options *options)
 {
@@ -26,6 +28,8 @@ get_input (struct input_options *options)
 
   if (line_size > LINE_LENGTH)
     input_error (line, "Invalid line length\n");
+
+  remove_newline (line);
 
   char *arg;
   // don't want to ruin the original string
@@ -42,8 +46,7 @@ get_input (struct input_options *options)
       if (options->argc > MAX_ARGS - 1)
         input_error (line, "Invalid argument count\n");
 
-      // trim newlines
-      arg[strcspn (arg, "\n")] = '\0';
+      remove_newline (arg);
 
       strncpy (options->argv[options->argc++], arg, MAX_LENGTH);
       arg = strtok (NULL, " ");

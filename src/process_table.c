@@ -15,6 +15,13 @@
       throw ("Process not found\n");                                          \
     }
 
+#define send_signal(pid, signal, message)                                     \
+  if (kill (pid, signal) != 0)                                                \
+    {                                                                         \
+      perror (#message " failed");                                            \
+      return;                                                                 \
+    }
+
 struct process *
 get_job (struct process_table *self, int pid, int *idx)
 {
@@ -64,8 +71,7 @@ kill_job (struct process_table *self, int pid)
   struct process *p = get_job (self, pid, &idx);
   return_if_null (p);
 
-  if (kill (pid, SIGKILL) != 0)
-    throw ("Kill failed");
+  send_signal (pid, SIGKILL, Kill);
 
   // it's a zombie process by this point, might as well reap
   wait_job (self, pid);
@@ -81,8 +87,7 @@ resume_job (struct process_table *self, int pid)
   if (p->status == RUNNING)
     throw ("Process already running\n");
 
-  if (kill (pid, SIGCONT) != 0)
-    throw ("Resume failed\n");
+  send_signal (pid, SIGCONT, Resume);
 
   p->status = RUNNING;
 }
@@ -97,8 +102,7 @@ suspend_job (struct process_table *self, int pid)
   if (p->status == SUSPENDED)
     throw ("Process already suspended\n");
 
-  if (kill (pid, SIGSTOP) != 0)
-    throw ("Suspend failed\n");
+  send_signal (pid, SIGSTOP, Suspend);
 
   p->status = SUSPENDED;
 }
@@ -133,7 +137,7 @@ new_job (struct process_table *self, struct cmd_options *options)
   pid_t pid = fork ();
   if (pid < 0)
     {
-      fprintf (stderr, "Error forking child process\n");
+      perror ("Error forking child process");
       exit (1);
     }
   else if (pid == 0)
@@ -141,7 +145,7 @@ new_job (struct process_table *self, struct cmd_options *options)
       // child process
       if (execvp (options->argv[0], options->argv) < 0)
         {
-          fprintf (stderr, "execvp failed\n");
+          perror ("execvp failed");
           exit (1);
         }
     }
