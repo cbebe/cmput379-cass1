@@ -6,5 +6,9 @@ shell379
 runner
 sleeper
 
+# io files
+input
+output
+
 # editor settings
 .vscode

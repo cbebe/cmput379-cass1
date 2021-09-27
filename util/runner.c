@@ -14,7 +14,7 @@ long_long_job (long long max_seconds, long long num)
         {
           k += 20;
           time_t diff = (time (NULL) - start);
-          if (diff >= max_seconds)
+          if (diff > max_seconds)
             {
               return k;
             }

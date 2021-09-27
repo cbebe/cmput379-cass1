@@ -15,6 +15,9 @@
       throw ("Process not found\n");                                          \
     }
 
+/**
+ * Send signal to pid, perror and returns from function if it fails
+ */
 #define send_signal(pid, signal, message)                                     \
   if (kill (pid, signal) != 0)                                                \
     {                                                                         \
@@ -47,15 +50,66 @@ print_resource_usage ()
 }
 
 void
+get_ps_output (struct process_table *self)
+{
+  // https://stackoverflow.com/questions/646241/c-run-a-system-command-and-get-output
+  FILE *fp;
+  char buf[64];
+
+  fp = popen ("ps", "r");
+  if (fp == NULL)
+    {
+      printf ("Failed to run command\n");
+      exit (1); // no ps no life
+    }
+
+  int i = 0;
+  while (fgets (buf, sizeof (buf), fp) != NULL)
+    {
+      // skip first line
+      if (i == 0)
+        {
+          i = 1;
+          continue;
+        }
+
+      remove_newline (buf);
+
+      char *tok;
+      // PID
+      tok = strtok (buf, " ");
+      pid_t pid = atoi (tok);
+      strtok (NULL, " ");
+      for (int j = 0; j < self->num_processes; ++j)
+        {
+          if (self->processes[i].pid == pid)
+            {
+              // time
+              tok = strtok (NULL, " ");
+              char *seconds;
+              strtok (tok, ":");
+              strtok (NULL, ":");
+              seconds = strtok (NULL, ":");
+              self->processes[i].time = atoi (seconds);
+            }
+        }
+    }
+
+  pclose (fp);
+}
+
+void
 show_jobs (struct process_table *self)
 {
   if (self->num_processes > 0)
     {
+      get_ps_output (self);
       printf (" #    PID S SEC COMMAND\n");
       for (int i = 0; i < self->num_processes; ++i)
         {
           struct process *p = &self->processes[i];
-          printf ("%2d: %5d %c%4d %s", i, p->pid, p->status, 0, p->cmd);
+          printf ("%2d: %5d %c%4d %s\n", i, p->pid, p->status, p->time,
+                  p->cmd);
         }
     }
 

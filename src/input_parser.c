@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #define input_error(line, message)                                            \
   do                                                                          \
@@ -13,14 +14,20 @@
     }                                                                         \
   while (0)
 
-#define remove_newline(line) line[strcspn (line, "\n")] = '\0'
-
 int
 get_input (struct input_options *options)
 {
   char *line = NULL;
   size_t len = LINE_LENGTH;
   ssize_t line_size = getline (&line, &len, stdin);
+
+  // EOF, done
+  if (line_size < 0)
+    {
+      if (TERMINAL)
+        printf ("\n");
+      print_usage_and_exit ();
+    }
 
   // only the newline is present
   if (line_size == 1)

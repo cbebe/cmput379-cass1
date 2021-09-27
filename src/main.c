@@ -18,9 +18,12 @@
 void
 run (struct process_table *table)
 {
-  // print prompt
-  printf ("shell379> ");
-  fflush (stdout);
+  if (TERMINAL)
+    {
+      // print prompt
+      printf ("shell379> ");
+      fflush (stdout);
+    }
   struct input_options options = { .argc = 0, .argv = {} };
   if (!get_input (&options))
     {
@@ -31,9 +34,7 @@ run (struct process_table *table)
 
   if (match (command, "exit"))
     {
-      printf ("Resources used\n");
-      print_resource_usage ();
-      exit (0);
+      print_usage_and_exit ();
     }
   else if (match (command, "jobs"))
     {

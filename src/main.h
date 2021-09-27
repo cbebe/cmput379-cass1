@@ -6,6 +6,20 @@
 #define MAX_ARGS 7        // Max number of arguments to a command
 #define MAX_PT_ENTRIES 32 // Max entries in the Process Table
 
+#include <string.h>
+
+#define remove_newline(line) line[strcspn (line, "\n")] = '\0'
+#define TERMINAL isatty (fileno (stdin))
+
+#define print_usage_and_exit()                                                \
+  do                                                                          \
+    {                                                                         \
+      printf ("Resources used\n");                                            \
+      print_resource_usage ();                                                \
+      exit (0);                                                               \
+    }                                                                         \
+  while (0)
+
 #define throw(message)                                                        \
   do                                                                          \
     {                                                                         \
@@ -25,6 +39,7 @@ enum process_status
 struct process
 {
   int pid;
+  int time;
   enum process_status status;
   char cmd[LINE_LENGTH];
 };
