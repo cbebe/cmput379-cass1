@@ -53,10 +53,7 @@ void
 get_ps_output (struct process_table *self)
 {
   // https://stackoverflow.com/questions/646241/c-run-a-system-command-and-get-output
-  FILE *fp;
-  char buf[64];
-
-  fp = popen ("ps", "r");
+  FILE *fp = popen ("ps", "r");
   if (fp == NULL)
     {
       printf ("Failed to run command\n");
@@ -64,6 +61,7 @@ get_ps_output (struct process_table *self)
     }
 
   int i = 0;
+  char buf[64];
   while (fgets (buf, sizeof (buf), fp) != NULL)
     {
       // skip first line
@@ -75,22 +73,19 @@ get_ps_output (struct process_table *self)
 
       remove_newline (buf);
 
-      char *tok;
-      // PID
-      tok = strtok (buf, " ");
+      char *tok = strtok (buf, " "); // PID
       pid_t pid = atoi (tok);
-      strtok (NULL, " ");
+      strtok (NULL, " "); // TTY
+      // search process table for ps entry
       for (int j = 0; j < self->num_processes; ++j)
         {
-          if (self->processes[i].pid == pid)
+          if (self->processes[j].pid == pid)
             {
-              // time
-              tok = strtok (NULL, " ");
-              char *seconds;
-              strtok (tok, ":");
-              strtok (NULL, ":");
-              seconds = strtok (NULL, ":");
-              self->processes[i].time = atoi (seconds);
+              tok = strtok (NULL, " ");           // TIME
+              strtok (tok, ":");                  // HH
+              strtok (NULL, ":");                 // MM
+              char *seconds = strtok (NULL, ":"); // SS
+              self->processes[j].time = atoi (seconds);
             }
         }
     }
@@ -178,7 +173,8 @@ wait_job (struct process_table *self, int pid)
   --self->num_processes;
   for (int i = idx; i < self->num_processes; ++i)
     {
-      self->processes[i] = self->processes[i + 1];
+      if (i + 1 < self->num_processes)
+        self->processes[i] = self->processes[i + 1];
     }
 }
 
@@ -212,6 +208,7 @@ new_job (struct process_table *self, struct cmd_options *options)
       struct process *p = &self->processes[self->num_processes++];
       p->pid = pid;
       p->status = RUNNING;
+      p->time = 0;
       strncpy (p->cmd, options->cmd, LINE_LENGTH);
     }
   else

@@ -1,19 +1,22 @@
 #ifndef SRC_MAIN
 #define SRC_MAIN
 
+#include <string.h>
+#include <sys/wait.h>
+
 #define LINE_LENGTH 100   // Max # of characters in an input line
 #define MAX_LENGTH 20     // Max # of characters in an argument
 #define MAX_ARGS 7        // Max number of arguments to a command
 #define MAX_PT_ENTRIES 32 // Max entries in the Process Table
 
-#include <string.h>
-
 #define remove_newline(line) line[strcspn (line, "\n")] = '\0'
 #define TERMINAL isatty (fileno (stdin))
 
-#define print_usage_and_exit()                                                \
+#define wait_and_exit()                                                       \
   do                                                                          \
     {                                                                         \
+      int status = 0;                                                         \
+      wait (&status);                                                         \
       printf ("Resources used\n");                                            \
       print_resource_usage ();                                                \
       exit (0);                                                               \

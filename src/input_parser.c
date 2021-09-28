@@ -26,7 +26,7 @@ get_input (struct input_options *options)
     {
       if (TERMINAL)
         printf ("\n");
-      print_usage_and_exit ();
+      wait_and_exit ();
     }
 
   // only the newline is present

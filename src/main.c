@@ -34,7 +34,7 @@ run (struct process_table *table)
 
   if (match (command, "exit"))
     {
-      print_usage_and_exit ();
+      wait_and_exit ();
     }
   else if (match (command, "jobs"))
     {
