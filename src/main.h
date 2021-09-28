@@ -61,11 +61,14 @@ enum process_type
 
 struct cmd_options
 {
-  char *cmd;            // the entire command
-  int ifc;              // input file count
-  char *ifv[MAX_ARGS];  // input file vector
-  int ofc;              // output file count
-  char *ofv[MAX_ARGS];  // output file vector
+  char *cmd; // the entire command
+
+  int to_file; // bool values
+  int from_file;
+
+  char *in_file; // filenames
+  char *out_file;
+
   int argc;             // argument count
   char *argv[MAX_ARGS]; // argument vector
   enum process_type bg;

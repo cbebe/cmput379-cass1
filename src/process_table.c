@@ -1,4 +1,5 @@
 #include "main.h"
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -170,12 +171,12 @@ wait_job (struct process_table *self, int pid)
   int stat_loc = 0;
   waitpid (p->pid, &stat_loc, 0);
   // remove process from array
-  --self->num_processes;
-  for (int i = idx; i < self->num_processes; ++i)
+  for (int i = idx; i < self->num_processes - 1; ++i)
     {
       if (i + 1 < self->num_processes)
         self->processes[i] = self->processes[i + 1];
     }
+  --self->num_processes;
 }
 
 void
@@ -192,6 +193,21 @@ new_job (struct process_table *self, struct cmd_options *options)
     }
   else if (pid == 0)
     {
+      // https://stackoverflow.com/questions/2605130/redirecting-exec-output-to-a-buffer-or-file
+      if (options->to_file)
+        {
+          int ofd = open (options->out_file, O_WRONLY | O_CREAT | O_TRUNC,
+                          S_IRUSR | S_IWUSR);
+          dup2 (ofd, STDOUT_FILENO);
+          close (ofd);
+        }
+      if (options->from_file)
+        {
+          int ifd = open (options->in_file, O_RDONLY, S_IRUSR);
+          dup2 (ifd, STDIN_FILENO);
+          close (ifd);
+        }
+
       // child process
       if (execvp (options->argv[0], options->argv) < 0)
         {

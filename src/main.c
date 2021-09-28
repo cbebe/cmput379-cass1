@@ -75,7 +75,7 @@ run (struct process_table *table)
       struct cmd_options *cmd = new_cmd_options ();
       if (!get_cmd_options (&options, cmd))
         {
-          fprintf (stderr, "Invalid input of '&'\n");
+          fprintf (stderr, "Invalid input\n");
           delete_cmd_options (cmd);
           return;
         }

@@ -86,17 +86,16 @@ new_cmd_options ()
 
   // init values
   options->argc = 0;
-  options->ifc = 0;
-  options->ofc = 0;
+  options->to_file = 0;
+  options->from_file = 0;
   options->bg = FOREGROUND;
 
   options->cmd = (char *)malloc (sizeof (char) * LINE_LENGTH);
   for (int i = 0; i < MAX_ARGS; ++i)
-    {
-      options->argv[i] = (char *)malloc (sizeof (char) * MAX_LENGTH);
-      options->ifv[i] = (char *)malloc (sizeof (char) * MAX_LENGTH);
-      options->ofv[i] = (char *)malloc (sizeof (char) * MAX_LENGTH);
-    }
+    options->argv[i] = (char *)malloc (sizeof (char) * MAX_LENGTH);
+
+  options->in_file = (char *)malloc (sizeof (char) * MAX_LENGTH);
+  options->out_file = (char *)malloc (sizeof (char) * MAX_LENGTH);
 
   return options;
 }
@@ -119,10 +118,20 @@ get_cmd_options (struct input_options *input, struct cmd_options *cmd)
           cmd->bg = BACKGROUND;
           break;
         case '<':
-          strncpy (cmd->ifv[cmd->ifc++], &input->argv[i][1], MAX_LENGTH);
+          // makes sure that there's only one input file
+          if (cmd->from_file)
+            return 0;
+
+          cmd->from_file = 1;
+          strncpy (cmd->in_file, &input->argv[i][1], MAX_LENGTH);
           break;
         case '>':
-          strncpy (cmd->ofv[cmd->ofc++], &input->argv[i][1], MAX_LENGTH);
+          // makes sure that there's only one output file
+          if (cmd->to_file)
+            return 0;
+
+          cmd->to_file = 1;
+          strncpy (cmd->out_file, &input->argv[i][1], MAX_LENGTH);
           break;
         default:
           strncpy (cmd->argv[cmd->argc++], input->argv[i], MAX_LENGTH);
@@ -140,11 +149,11 @@ delete_cmd_options (struct cmd_options *options)
   for (int i = 0; i < MAX_ARGS; ++i)
     {
       free (options->argv[i]);
-      free (options->ifv[i]);
-      free (options->ofv[i]);
     }
 
   free (options->cmd);
+  free (options->in_file);
+  free (options->out_file);
   free (options);
 }
 
@@ -153,20 +162,14 @@ void
 print_cmd_options (struct cmd_options *options)
 {
   printf ("Command: %s\n", options->cmd);
+  if (options->from_file)
+    printf ("Input file: %s\n", options->in_file);
+  if (options->to_file)
+    printf ("Output file: %s\n", options->out_file);
   printf ("Args: ");
   for (int i = 0; i < options->argc; ++i)
     {
       printf ("%s ", options->argv[i]);
-    }
-  printf ("\nInput: ");
-  for (int i = 0; i < options->ifc; ++i)
-    {
-      printf ("%s ", options->ifv[i]);
-    }
-  printf ("\nOutput: ");
-  for (int i = 0; i < options->ofc; ++i)
-    {
-      printf ("%s ", options->ofv[i]);
     }
   printf ("\n");
 }

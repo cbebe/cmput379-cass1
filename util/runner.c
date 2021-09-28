@@ -41,7 +41,8 @@ main (int argc, char const *argv[])
     }
   else
     {
-      scanf ("%lld\n", &max_seconds);
+      scanf ("%lld", &max_seconds);
+      num = 200000000000;
     }
 
   int result = long_long_job (max_seconds, num);
