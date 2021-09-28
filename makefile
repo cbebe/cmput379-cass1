@@ -1,11 +1,17 @@
 CFLAGS = -Wall -Wextra -Isrc
 
-all: shell379 runner sleeper
+all: shell379 runner sleeper piper logger
 
 run: shell379
 	./shell379
 
 runner: util/runner.c
+	gcc $(CFLAGS) -o $@ $<
+
+piper: util/piper.c
+	gcc $(CFLAGS) -o $@ $<
+
+logger: util/logger.c
 	gcc $(CFLAGS) -o $@ $<
 
 sleeper: util/sleeper.c

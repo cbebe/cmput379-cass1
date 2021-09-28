@@ -5,6 +5,8 @@ build
 shell379
 runner
 sleeper
+logger
+piper
 
 # io files
 input
