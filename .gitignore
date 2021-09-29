@@ -8,6 +8,9 @@ sleeper
 logger
 piper
 
+# object files
+*.o
+
 # io files
 input
 output
