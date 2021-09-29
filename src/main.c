@@ -6,14 +6,32 @@
 
 #include "main.h"
 
-#define match(cmd, jobs) strncmp (cmd, jobs, MAX_LENGTH) == 0
-
 // this is how i start writing unreadable c code
 #define require_int(options, pid, message)                                    \
   if (!get_int (options, pid))                                                \
     {                                                                         \
       throw (message);                                                        \
     }
+
+// please stop me
+#define table_command(command, table, input)                                  \
+  do                                                                          \
+    {                                                                         \
+      int pid = 0;                                                            \
+      require_int (&input, &pid, "PID required\n");                           \
+      command (table, pid);                                                   \
+    }                                                                         \
+  while (0)
+
+struct process_table table = { .num_processes = 0, .processes = {} };
+
+void
+sigchild_handler (int sig)
+{
+  // https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c/12891181
+  (void)(sig);
+  reap_zombies (&table);
+}
 
 void
 run (struct process_table *table)
@@ -24,56 +42,36 @@ run (struct process_table *table)
       printf ("shell379> ");
       fflush (stdout);
     }
-  struct input_options options = { .argc = 0, .argv = {} };
-  if (!get_input (&options))
+  struct parsed_input input = { .argc = 0, .argv = {} };
+  if (!get_input (&input))
     {
       return;
     }
 
-  char *command = options.argv[0];
+  char *command = input.argv[0];
 
   if (match (command, "exit"))
-    {
-      wait_and_exit ();
-    }
+    wait_and_exit ();
   else if (match (command, "jobs"))
-    {
-      show_jobs (table);
-    }
+    show_jobs (table);
   else if (match (command, "kill"))
-    {
-      int pid = 0;
-      require_int (&options, &pid, "PID required\n");
-      kill_job (table, pid);
-    }
+    table_command (kill_job, table, input);
   else if (match (command, "resume"))
-    {
-      int pid = 0;
-      require_int (&options, &pid, "PID required\n");
-      resume_job (table, pid);
-    }
+    table_command (resume_job, table, input);
+  else if (match (command, "suspend"))
+    table_command (suspend_job, table, input);
+  else if (match (command, "wait"))
+    table_command (wait_job, table, input);
   else if (match (command, "sleep"))
     {
       int seconds = 0;
-      require_int (&options, &seconds, "Seconds required\n");
+      require_int (&input, &seconds, "Seconds required\n");
       sleep (seconds);
-    }
-  else if (match (command, "suspend"))
-    {
-      int pid = 0;
-      require_int (&options, &pid, "PID required\n");
-      suspend_job (table, pid);
-    }
-  else if (match (command, "wait"))
-    {
-      int pid = 0;
-      require_int (&options, &pid, "PID required\n");
-      wait_job (table, pid);
     }
   else
     {
       struct cmd_options *cmd = new_cmd_options ();
-      if (!get_cmd_options (&options, cmd))
+      if (!get_cmd_options (&input, cmd))
         {
           fprintf (stderr, "Invalid input\n");
           delete_cmd_options (cmd);
@@ -95,7 +93,12 @@ run (struct process_table *table)
 int
 main ()
 {
-  struct process_table table = { .num_processes = 0, .processes = {} };
+  // https://en.wikipedia.org/wiki/C_signal_handling
+  if (signal (SIGCHLD, sigchild_handler) == SIG_ERR)
+    {
+      fprintf (stderr, "Error setting signal listener\n");
+      exit (1);
+    }
   while (1)
     {
       run (&table);

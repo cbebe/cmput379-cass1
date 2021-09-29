@@ -15,7 +15,7 @@
   while (0)
 
 int
-get_input (struct input_options *options)
+get_input (struct parsed_input *options)
 {
   char *line = NULL;
   size_t len = LINE_LENGTH;
@@ -64,8 +64,10 @@ get_input (struct input_options *options)
   return 1;
 }
 
+// get an integer from the argument vector
+// return 1 if it's a valid int, 0 if not
 int
-get_int (struct input_options *options, int *integer)
+get_int (struct parsed_input *options, int *integer)
 {
   if (options->argc < 2)
     return 0;
@@ -78,6 +80,7 @@ get_int (struct input_options *options, int *integer)
   return 1;
 }
 
+// allocate memory for a command options struct
 struct cmd_options *
 new_cmd_options ()
 {
@@ -101,7 +104,7 @@ new_cmd_options ()
 }
 
 int
-get_cmd_options (struct input_options *input, struct cmd_options *cmd)
+get_cmd_options (struct parsed_input *input, struct cmd_options *cmd)
 {
   strncpy (cmd->cmd, input->cmd, LINE_LENGTH);
 
@@ -143,13 +146,12 @@ get_cmd_options (struct input_options *input, struct cmd_options *cmd)
   return 1;
 }
 
+// frees memory allocated to a cmd_options struct
 void
 delete_cmd_options (struct cmd_options *options)
 {
   for (int i = 0; i < MAX_ARGS; ++i)
-    {
-      free (options->argv[i]);
-    }
+    free (options->argv[i]);
 
   free (options->cmd);
   free (options->in_file);

@@ -9,6 +9,7 @@
 #define MAX_ARGS 7        // Max number of arguments to a command
 #define MAX_PT_ENTRIES 32 // Max entries in the Process Table
 
+#define match(s1, s2) strncmp (s1, s2, MAX_LENGTH) == 0
 #define remove_newline(line) line[strcspn (line, "\n")] = '\0'
 #define TERMINAL isatty (fileno (stdin))
 
@@ -33,10 +34,8 @@
 
 enum process_status
 {
-  // process is running in background
-  RUNNING = 'R',
-  // process in background is suspended
-  SUSPENDED = 'S',
+  RUNNING = 'R',   // process is running in background
+  SUSPENDED = 'S', // process in background is suspended
 };
 
 struct process
@@ -59,6 +58,7 @@ enum process_type
   BACKGROUND = 1,
 };
 
+// struct for storing options when running a command
 struct cmd_options
 {
   char *cmd; // the entire command
@@ -74,7 +74,7 @@ struct cmd_options
   enum process_type bg;
 };
 
-struct input_options
+struct parsed_input
 {
   char cmd[LINE_LENGTH];
   int argc;
@@ -88,12 +88,13 @@ void resume_job (struct process_table *self, int pid);
 void suspend_job (struct process_table *self, int pid);
 void wait_job (struct process_table *self, int pid);
 void new_job (struct process_table *self, struct cmd_options *options);
+void reap_zombies (struct process_table *self);
 void print_resource_usage ();
 
 // parser functions
-int get_input (struct input_options *options);
-int get_cmd_options (struct input_options *input, struct cmd_options *cmd);
-int get_int (struct input_options *options, int *integer);
+int get_input (struct parsed_input *options);
+int get_cmd_options (struct parsed_input *input, struct cmd_options *cmd);
+int get_int (struct parsed_input *options, int *integer);
 struct cmd_options *new_cmd_options ();
 void delete_cmd_options (struct cmd_options *options);
 void print_cmd_options (struct cmd_options *options);

@@ -97,6 +97,7 @@ get_ps_output (struct process_table *self)
 void
 show_jobs (struct process_table *self)
 {
+  printf ("Running processes:\n");
   if (self->num_processes > 0)
     {
       get_ps_output (self);
@@ -158,6 +159,18 @@ suspend_job (struct process_table *self, int pid)
 }
 
 void
+remove_job (struct process_table *self, int idx)
+{
+  // remove process from array
+  for (int i = idx; i < self->num_processes - 1; ++i)
+    {
+      if (i + 1 < self->num_processes)
+        self->processes[i] = self->processes[i + 1];
+    }
+  --self->num_processes;
+}
+
+void
 wait_job (struct process_table *self, int pid)
 {
   int idx = 0;
@@ -170,13 +183,7 @@ wait_job (struct process_table *self, int pid)
 
   int stat_loc = 0;
   waitpid (p->pid, &stat_loc, 0);
-  // remove process from array
-  for (int i = idx; i < self->num_processes - 1; ++i)
-    {
-      if (i + 1 < self->num_processes)
-        self->processes[i] = self->processes[i + 1];
-    }
-  --self->num_processes;
+  remove_job (self, idx);
 }
 
 void
@@ -212,7 +219,8 @@ new_job (struct process_table *self, struct cmd_options *options)
       if (execvp (options->argv[0], options->argv) < 0)
         {
           perror ("execvp failed");
-          exit (1);
+          // https://stackoverflow.com/questions/5422831/what-is-the-difference-between-using-exit-exit-in-a-conventional-linux-fo
+          _exit (1);
         }
     }
 
@@ -232,5 +240,19 @@ new_job (struct process_table *self, struct cmd_options *options)
       // wait for process, don't add to table
       int status = 0;
       waitpid (pid, &status, 0);
+    }
+}
+
+void
+reap_zombies (struct process_table *self)
+{
+  int status = 0;
+  for (int i = 0; i < self->num_processes; ++i)
+    {
+      if (waitpid (self->processes[i].pid, &status, WNOHANG))
+        {
+          // child died
+          remove_job (self, i);
+        }
     }
 }
