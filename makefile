@@ -1,9 +1,13 @@
 CFLAGS = -Wall -Wextra -Isrc
+UTIL=runner sleeper piper logger
 
-all: shell379 runner sleeper piper logger
+all: shell379 $(UTIL) input
 
-run: shell379
+run: shell379 $(UTIL)
 	./shell379
+
+input:
+	echo "3" >input
 
 runner: util/runner.c
 	gcc $(CFLAGS) -o $@ $<
@@ -28,5 +32,5 @@ build:
 	mkdir build
 
 clean:
-	rm shell379
+	rm -f shell379 $(UTIL) input output
 	rm -rf build/*
