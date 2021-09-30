@@ -1,9 +1,8 @@
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <fcntl.h>     // open and its mask bits
+#include <stdio.h>     // perror
+#include <string.h>    // strncpy
+#include <sys/wait.h>  // _wait, waitpid
+#include <unistd.h>    // execvp, _exit, close, dup2 and file numbers
 
 #include "main.h"
 

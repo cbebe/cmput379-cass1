@@ -1,8 +1,10 @@
 #ifndef SRC_MAIN
 #define SRC_MAIN
 
-#include <string.h>
-#include <sys/wait.h>
+#include <stdio.h>     // printf, fprintf, fileno, stdin, stderr
+#include <string.h>    // strncmp, strcspn
+#include <sys/wait.h>  // wait
+#include <unistd.h>    // isatty
 
 #define LINE_LENGTH 100    // Max # of characters in an input line
 #define MAX_LENGTH 20      // Max # of characters in an argument

@@ -1,10 +1,9 @@
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/resource.h>
-#include <sys/wait.h>
-#include <unistd.h>
+#include <stdio.h>         // fprintf, printf, stderr, popen
+#include <stdlib.h>        // exit
+#include <string.h>        // strtok
+#include <sys/resource.h>  // getrusage
+#include <sys/wait.h>      // waitpid, WNOHANG
+#include <unistd.h>        // kill, perror, and signal numbers
 
 #include "main.h"
 

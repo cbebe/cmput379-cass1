@@ -1,9 +1,8 @@
 #include "main.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>   // printf, fprintf, stderr, fflush, stdout
+#include <stdlib.h>  // exit
+#include <unistd.h>  // sleep
 
 // process table functions
 void show_jobs(struct process_table* self);

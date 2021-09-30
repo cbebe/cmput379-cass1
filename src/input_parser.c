@@ -1,8 +1,6 @@
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include <stdio.h>   // getline, printf, fprintf, stderr, sscanf
+#include <stdlib.h>  // malloc, free
+#include <string.h>  // strncpy, strtok, strlen, strspn
 
 #include "main.h"
 
