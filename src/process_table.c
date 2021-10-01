@@ -111,19 +111,6 @@ void resume_job(struct process_table *self, int pid) {
   p->status = RUNNING;
 }
 
-void remove_job(struct process_table *self, int idx) {
-  // remove process from array
-  for (int i = idx; i < self->num_processes - 1; ++i) {
-    if (i + 1 < self->num_processes) {
-      self->processes[i] = self->processes[i + 1];
-    } else {
-      // make sure that it's not found again
-      self->processes[i].pid = -1;
-    }
-  }
-  --self->num_processes;
-}
-
 void wait_job(struct process_table *self, int pid) {
   int idx = get_job(self, pid);
   if (idx < 0) throw("Process not found\n");
@@ -171,11 +158,18 @@ void new_job(struct process_table *self, struct cmd_options *options) {
 }
 
 void reap_children(struct process_table *self) {
-  int status = 0;
+  int status = 0, ongoing_children = 0;
+  struct process temp[MAX_PT_ENTRIES];
   for (int i = 0; i < self->num_processes; ++i) {
-    if (waitpid(self->processes[i].pid, &status, WNOHANG))
-      remove_job(self, i);  // child died
+    // process is still ongoing
+    if (!waitpid(self->processes[i].pid, &status, WNOHANG))
+      temp[ongoing_children++] = self->processes[i];
   }
+
+  // copy back to array
+  for (int i = 0; i < ongoing_children; ++i) self->processes[i] = temp[i];
+
+  self->num_processes = ongoing_children;
 }
 
 void run_command(struct process_table *table, struct parsed_input *input) {
