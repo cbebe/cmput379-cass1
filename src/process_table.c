@@ -134,7 +134,6 @@ void wait_job(struct process_table *self, int pid) {
 
   int stat_loc = 0;
   waitpid(p->pid, &stat_loc, 0);
-  remove_job(self, idx);
 }
 
 void kill_job(struct process_table *self, int pid) {

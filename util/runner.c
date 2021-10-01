@@ -1,40 +1,53 @@
-#include <stdio.h>   // printf, scanf
-#include <stdlib.h>  // atoll
-#include <time.h>    // time, time_t
+// C program for implementation of Bubble sort
+// https://www.geeksforgeeks.org/bubble-sort/
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
 
-int long_long_job(long long max_seconds, long long num) {
-  time_t start = time(NULL);
-
-  int k = 0;
-  for (long long i = 0; i < num; ++i) {
-    for (long long j = 0; j < num; ++j) {
-      k += 20;
-      time_t diff = (time(NULL) - start);
-      if (diff > max_seconds) {
-        return k;
-      }
-    }
-  }
-
-  return k;
+void swap(int *xp, int *yp) {
+  int temp = *xp;
+  *xp = *yp;
+  *yp = temp;
 }
 
-int main(int argc, char const *argv[]) {
-  long long max_seconds = 0;
-  long long num = 0;
-  if (argc == 3) {
-    max_seconds = atoll(argv[1]);
-    num = atoll(argv[2]);
-  } else if (argc == 2) {
-    max_seconds = atoll(argv[1]);
-    num = 200000000000;
-  } else {
-    scanf("%lld", &max_seconds);
-    num = 200000000000;
-  }
-  printf("%lld", max_seconds);
-  int result = long_long_job(max_seconds, num);
-  printf("%d\n", result);
+/* Function to print an array */
+void print_array(int arr[], long long int size) {
+  for (long long int i = 0; i < size; i++) printf("%d ", arr[i]);
+  printf("\n");
+}
 
+// A function to implement bubble sort
+void bubble_sort(int arr[], long long int n, long long int max_seconds) {
+  time_t start = time(NULL);
+  for (long long int i = 0; i < n - 1; i++) {
+    // Last i elements are already in place
+    for (long long int j = 0; j < n - i - 1; j++) {
+      time_t diff = (time(NULL) - start);
+      if (diff > max_seconds) {
+        free(arr);
+        exit(0);
+      }
+      if (arr[j] > arr[j + 1]) swap(&arr[j], &arr[j + 1]);
+    }
+  }
+}
+
+// Driver program to test above functions
+int main() {
+  srand(time(NULL));
+
+  long long int max_seconds = 0;
+  long long int array_size = 0;
+  scanf("%lld", &max_seconds);
+  scanf("%lld", &array_size);
+  int *arr = (int *)malloc(sizeof(int) * array_size);
+  for (long long int i = 0; i < array_size; ++i) {
+    arr[i] = rand();
+  }
+
+  bubble_sort(arr, array_size, max_seconds);
+  printf("Sorted array: \n");
+  print_array(arr, array_size);
+  free(arr);
   return 0;
 }

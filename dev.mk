@@ -7,7 +7,7 @@ run: shell379 $(UTIL)
 	./shell379
 
 input:
-	echo "3" >input
+	echo "15\n200000000" >input
 
 runner: util/runner.c
 	gcc $(CFLAGS) -o $@ $<
