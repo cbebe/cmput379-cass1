@@ -32,4 +32,4 @@ build:
 
 clean:
 	rm -f shell379 $(UTIL) input output
-	rm -rf build/*
+	rm -rf build
