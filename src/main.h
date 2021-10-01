@@ -1,5 +1,5 @@
-#ifndef SRC_MAIN
-#define SRC_MAIN
+#ifndef MAIN_H_
+#define MAIN_H_
 
 #include <stdio.h>     // printf, fprintf, fileno, stdin, stderr
 #include <string.h>    // strncmp, strcspn
@@ -11,7 +11,6 @@
 #define MAX_ARGS 7         // Max number of arguments to a command
 #define MAX_PT_ENTRIES 32  // Max entries in the Process Table
 
-#define match(s1, s2) strncmp(s1, s2, MAX_LENGTH) == 0
 #define remove_newline(line) line[strcspn(line, "\n")] = '\0'
 #define TERMINAL isatty(fileno(stdin))
 
@@ -38,7 +37,7 @@ enum process_status {
 };
 
 struct process {
-  int pid;
+  pid_t pid;
   int time;
   enum process_status status;
   char cmd[LINE_LENGTH];
@@ -56,23 +55,23 @@ enum process_type {
 
 // struct for storing options when running a command
 struct cmd_options {
-  char* cmd;  // the entire command
+  char *cmd;  // the entire command
 
   int to_file;  // bool values
   int from_file;
 
-  char* in_file;  // filenames
-  char* out_file;
+  char *in_file;  // filenames
+  char *out_file;
 
   int argc;              // argument count
-  char* argv[MAX_ARGS];  // argument vector
+  char *argv[MAX_ARGS];  // argument vector
   enum process_type bg;
 };
 
 struct parsed_input {
-  char cmd[LINE_LENGTH];
-  int argc;
-  char argv[MAX_ARGS][MAX_LENGTH];
+  char cmd[LINE_LENGTH];            // the entire command
+  int tokc;                         // token count
+  char tokv[MAX_ARGS][MAX_LENGTH];  // token vector
 };
 
-#endif /* SRC_MAIN */
+#endif  // MAIN_H_

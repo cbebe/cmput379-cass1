@@ -1,29 +1,37 @@
 #include "main.h"
 
+#include <signal.h>  // signal numbers
 #include <stdio.h>   // printf, fprintf, stderr, fflush, stdout
 #include <stdlib.h>  // exit
 #include <unistd.h>  // sleep
 
 // process table functions
-void show_jobs(struct process_table* self);
-void wait_job(struct process_table* self, int pid);
-void kill_job(struct process_table* self, int pid);
-void resume_job(struct process_table* self, int pid);
-void suspend_job(struct process_table* self, int pid);
-void reap_children(struct process_table* self);
-void run_command(struct process_table* table, struct parsed_input* input);
+void show_jobs(struct process_table *table);
+void wait_job(struct process_table *table, int pid);
+void kill_job(struct process_table *table, int pid);
+void resume_job(struct process_table *table, int pid);
+void suspend_job(struct process_table *table, int pid);
+void reap_children(struct process_table *table);
+void run_command(struct process_table *table, struct parsed_input *input);
 
 // parser functions
-int get_input(struct parsed_input* options);
-int get_int(struct parsed_input* options, int* integer);
+int get_input(struct parsed_input *options);
+int get_int(struct parsed_input *options, int *integer);
 
-// this is how i start writing unreadable c code
-#define require_int(options, pid, message) \
-  if (!get_int(options, pid)) {            \
-    throw(message);                        \
-  }
+/**
+ * bool macro for matching strings
+ */
+#define match(s1, s2) strncmp(s1, s2, MAX_LENGTH) == 0
 
-// please stop me
+/**
+ * This is how i start writing unreadable c code
+ */
+#define require_int(input, pid, message) \
+  if (!get_int(input, pid)) throw(message);
+
+/**
+ * Please stop me
+ */
 #define table_command(command, table, input)     \
   do {                                           \
     int pid = 0;                                 \
@@ -31,19 +39,16 @@ int get_int(struct parsed_input* options, int* integer);
     command(table, pid);                         \
   } while (0)
 
-struct process_table table = {.num_processes = 0, .processes = {}};
+// make table available to the sigchld_handler
+struct process_table table = {.num_processes = 0};
 
-void sigchild_handler() {
-  // https://stackoverflow.com/questions/3599160/how-to-suppress-unused-parameter-warnings-in-c/12891181
-  // (void)(sig);
-  reap_children(&table);
-}
+void sigchld_handler() { reap_children(&table); }
 
-void run(struct process_table* table) {
-  struct parsed_input input = {.argc = 0, .argv = {}};
+void run(struct process_table *table) {
+  struct parsed_input input = {.tokc = 0};
   if (!get_input(&input)) return;
 
-  char* command = input.argv[0];
+  char *command = input.tokv[0];
 
   if (match(command, "exit"))
     wait_and_exit();
@@ -67,14 +72,13 @@ void run(struct process_table* table) {
 
 int main() {
   // https://en.wikipedia.org/wiki/C_signal_handling
-  if (signal(SIGCHLD, sigchild_handler) == SIG_ERR) {
+  if (signal(SIGCHLD, sigchld_handler) == SIG_ERR) {
     fprintf(stderr, "Error setting signal listener\n");
     exit(1);
   }
   while (1) {
     if (TERMINAL) {
-      // print prompt
-      printf("shell379> ");
+      printf("shell379> ");  // print prompt
       fflush(stdout);
     }
     run(&table);

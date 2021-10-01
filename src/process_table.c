@@ -1,23 +1,16 @@
+#include <signal.h>        // signal numbers
 #include <stdio.h>         // fprintf, printf, stderr, popen
 #include <stdlib.h>        // exit
 #include <string.h>        // strtok
 #include <sys/resource.h>  // getrusage
 #include <sys/wait.h>      // waitpid, WNOHANG
-#include <unistd.h>        // kill, perror, and signal numbers
+#include <unistd.h>        // kill, perror
 
 #include "main.h"
 
-int get_cmd_options(struct parsed_input* input, struct cmd_options* cmd);
-struct cmd_options* new_cmd_options();
-void delete_cmd_options(struct cmd_options* options);
-
-/**
- * Returns from function if process pointer is null
- */
-#define return_if_null(p)         \
-  if (p == NULL) {                \
-    throw("Process not found\n"); \
-  }
+int get_cmd_options(struct parsed_input *input, struct cmd_options *cmd);
+struct cmd_options *new_cmd_options();
+void delete_cmd_options(struct cmd_options *options);
 
 /**
  * Send signal to pid, perror and returns from function if it fails
@@ -28,19 +21,17 @@ void delete_cmd_options(struct cmd_options* options);
     return;                               \
   }
 
-void child_exec(struct cmd_options* options);
-void parent_exec(struct process_table* self, struct cmd_options* options,
+// process functions
+void child_exec(struct cmd_options *options);
+void parent_exec(struct process_table *self, struct cmd_options *options,
                  int pid);
 
-struct process* get_job(struct process_table* self, int pid, int* idx) {
+int get_job(struct process_table *self, int pid) {
   for (int i = 0; i < self->num_processes; ++i) {
-    if (self->processes[i].pid == pid) {
-      *idx = i;
-      return &self->processes[i];
-    }
+    if (self->processes[i].pid == pid) return i;
   }
 
-  return NULL;
+  return -1;
 }
 
 void print_resource_usage() {
@@ -50,25 +41,28 @@ void print_resource_usage() {
   printf("Sys  time = \t %ld seconds\n", usage.ru_stime.tv_sec);
 }
 
-void process_ps_line(struct process_table* self, char* buf) {
-  char* tok = strtok(buf, " ");  // PID
+/**
+ * Update process from process table if it's present in the ps output
+ */
+void process_ps_line(struct process_table *self, char *buf) {
+  char *tok = strtok(buf, " ");  // PID
   pid_t pid = atoi(tok);
-  strtok(NULL, " ");  // TTY
+  strtok(NULL, " ");  // TTY, token not needed
   // search process table for ps entry
   for (int j = 0; j < self->num_processes; ++j) {
     if (self->processes[j].pid == pid) {
-      tok = strtok(NULL, " ");            // TIME
-      strtok(tok, ":");                   // HH
-      strtok(NULL, ":");                  // MM
-      char* seconds = strtok(NULL, ":");  // SS
+      tok = strtok(NULL, " ");            // TIME token
+      strtok(tok, ":");                   // HH, not needed
+      strtok(NULL, ":");                  // MM, not needed
+      char *seconds = strtok(NULL, ":");  // SS
       self->processes[j].time = atoi(seconds);
     }
   }
 }
 
-void get_ps_output(struct process_table* self) {
+void get_ps_output(struct process_table *self) {
   // https://stackoverflow.com/questions/646241/c-run-a-system-command-and-get-output
-  FILE* fp = popen("ps", "r");
+  FILE *fp = popen("ps", "r");
   if (fp == NULL) {
     printf("Failed to run command\n");
     exit(1);  // no ps no life
@@ -89,13 +83,13 @@ void get_ps_output(struct process_table* self) {
   pclose(fp);
 }
 
-void show_jobs(struct process_table* self) {
+void show_jobs(struct process_table *self) {
   printf("Running processes:\n");
   if (self->num_processes > 0) {
     get_ps_output(self);
     printf(" #    PID S SEC COMMAND\n");
     for (int i = 0; i < self->num_processes; ++i) {
-      struct process* p = &self->processes[i];
+      struct process *p = &self->processes[i];
       printf("%2d: %5d %c%4d %s\n", i, p->pid, p->status, p->time, p->cmd);
     }
   }
@@ -105,10 +99,10 @@ void show_jobs(struct process_table* self) {
   print_resource_usage();
 }
 
-void resume_job(struct process_table* self, int pid) {
-  int idx = 0;
-  struct process* p = get_job(self, pid, &idx);
-  return_if_null(p);
+void resume_job(struct process_table *self, int pid) {
+  int idx = get_job(self, pid);
+  if (idx < 0) throw("Process not found\n");
+  struct process *p = &self->processes[idx];
 
   if (p->status == RUNNING) throw("Process already running\n");
 
@@ -117,19 +111,23 @@ void resume_job(struct process_table* self, int pid) {
   p->status = RUNNING;
 }
 
-void remove_job(struct process_table* self, int idx) {
+void remove_job(struct process_table *self, int idx) {
   // remove process from array
   for (int i = idx; i < self->num_processes - 1; ++i) {
-    if (i + 1 < self->num_processes)
+    if (i + 1 < self->num_processes) {
       self->processes[i] = self->processes[i + 1];
+    } else {
+      // make sure that it's not found again
+      self->processes[i].pid = -1;
+    }
   }
   --self->num_processes;
 }
 
-void wait_job(struct process_table* self, int pid) {
-  int idx = 0;
-  struct process* p = get_job(self, pid, &idx);
-  return_if_null(p);
+void wait_job(struct process_table *self, int pid) {
+  int idx = get_job(self, pid);
+  if (idx < 0) throw("Process not found\n");
+  struct process *p = &self->processes[idx];
 
   // don't let program hang by waiting for a suspended process
   if (p->status == SUSPENDED) resume_job(self, pid);
@@ -139,21 +137,17 @@ void wait_job(struct process_table* self, int pid) {
   remove_job(self, idx);
 }
 
-void kill_job(struct process_table* self, int pid) {
-  int idx = 0;
-  struct process* p = get_job(self, pid, &idx);
-  return_if_null(p);
+void kill_job(struct process_table *self, int pid) {
+  int idx = get_job(self, pid);
+  if (idx < 0) throw("Process not found\n");
 
   send_signal(pid, SIGKILL, Kill);
-
-  // it's a zombie process by this point, might as well reap
-  wait_job(self, pid);
 }
 
-void suspend_job(struct process_table* self, int pid) {
-  int idx = 0;
-  struct process* p = get_job(self, pid, &idx);
-  return_if_null(p);
+void suspend_job(struct process_table *self, int pid) {
+  int idx = get_job(self, pid);
+  if (idx < 0) throw("Process not found\n");
+  struct process *p = &self->processes[idx];
 
   if (p->status == SUSPENDED) throw("Process already suspended\n");
 
@@ -162,8 +156,8 @@ void suspend_job(struct process_table* self, int pid) {
   p->status = SUSPENDED;
 }
 
-void new_job(struct process_table* self, struct cmd_options* options) {
-  if (self->num_processes >= MAX_PT_ENTRIES)
+void new_job(struct process_table *self, struct cmd_options *options) {
+  if (options->bg && self->num_processes >= MAX_PT_ENTRIES)
     throw("Maximum number of processes reached\n");
 
   pid_t pid = fork();
@@ -177,7 +171,7 @@ void new_job(struct process_table* self, struct cmd_options* options) {
   parent_exec(self, options, pid);
 }
 
-void reap_children(struct process_table* self) {
+void reap_children(struct process_table *self) {
   int status = 0;
   for (int i = 0; i < self->num_processes; ++i) {
     if (waitpid(self->processes[i].pid, &status, WNOHANG))
@@ -185,8 +179,8 @@ void reap_children(struct process_table* self) {
   }
 }
 
-void run_command(struct process_table* table, struct parsed_input* input) {
-  struct cmd_options* cmd = new_cmd_options();
+void run_command(struct process_table *table, struct parsed_input *input) {
+  struct cmd_options *cmd = new_cmd_options();
   if (!get_cmd_options(input, cmd)) {
     fprintf(stderr, "Invalid input\n");
     delete_cmd_options(cmd);
