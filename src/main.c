@@ -15,8 +15,8 @@ void reap_children(struct process_table *table);
 void run_command(struct process_table *table, struct parsed_input *input);
 
 // parser functions
-int get_input(struct parsed_input *options);
-int get_int(struct parsed_input *options, int *integer);
+int get_input(struct parsed_input *input);
+int get_int(struct parsed_input *input, int *integer);
 
 /**
  * bool macro for matching strings
@@ -26,17 +26,11 @@ int get_int(struct parsed_input *options, int *integer);
 /**
  * This is how i start writing unreadable c code
  */
-#define require_int(input, pid, message) \
-  if (!get_int(input, pid)) throw(message);
-
-/**
- * Please stop me
- */
-#define table_command(command, table, input)     \
-  do {                                           \
-    int pid = 0;                                 \
-    require_int(&input, &pid, "PID required\n"); \
-    command(table, pid);                         \
+#define table_command(command, table, input)             \
+  do {                                                   \
+    int pid = 0;                                         \
+    if (!get_int(&input, &pid)) throw("PID required\n"); \
+    command(table, pid);                                 \
   } while (0)
 
 // make table available to the sigchld_handler
@@ -64,8 +58,11 @@ void run(struct process_table *table) {
     table_command(wait_job, table, input);
   else if (match(command, "sleep")) {
     int seconds = 0;
-    require_int(&input, &seconds, "Seconds required\n");
-    sleep(seconds);
+    if (get_int(&input, &seconds)) {
+      sleep(seconds);  // call sleep system call directly
+    } else {
+      run_command(table, &input);  // call UNIX sleep command
+    }
   } else
     run_command(table, &input);
 }
