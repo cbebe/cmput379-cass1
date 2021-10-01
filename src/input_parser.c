@@ -41,7 +41,7 @@ int split_input(struct parsed_input *options, char *line) {
  * Gets input from stdin and assigns values to a parsed_input struct
  * Returns 0 for invalid/no input and 1 for valid input
  */
-int get_input(struct parsed_input *options) {
+int get_input(struct parsed_input *input) {
   char *line = NULL;
   size_t len = LINE_LENGTH;
   ssize_t line_size = getline(&line, &len, stdin);
@@ -59,9 +59,9 @@ int get_input(struct parsed_input *options) {
 
   remove_newline(line);
 
-  if (!split_input(options, line)) return 0;
+  if (!split_input(input, line)) return 0;
 
-  strncpy(options->cmd, line, LINE_LENGTH);
+  strncpy(input->cmd, line, LINE_LENGTH);
   free(line);  // getline allocates memory
   return 1;
 }
@@ -70,10 +70,10 @@ int get_input(struct parsed_input *options) {
  * Gets an integer from the argument vector
  * Returns 1 if it's a valid int, 0 if not
  */
-int get_int(struct parsed_input *options, int *integer) {
-  if (options->tokc != 2) return 0;
+int get_int(struct parsed_input *input, int *integer) {
+  if (input->tokc != 2) return 0;
 
-  char *int_str = options->tokv[1];
+  char *int_str = input->tokv[1];
   if (strspn(int_str, "0123456789") != strlen(int_str)) return 0;
 
   sscanf(int_str, "%d%*c", integer);
