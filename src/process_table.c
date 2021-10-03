@@ -42,6 +42,18 @@ void print_resource_usage() {
 }
 
 /**
+ * Wait for all child processes and then exit
+ */
+void wait_and_exit() {
+  int pid = 0;
+  while ((pid = wait(NULL)) > 0)
+    ;
+  printf("Resources used\n");
+  print_resource_usage();
+  exit(0);
+}
+
+/**
  * Update process from process table if it's present in the ps output
  */
 void process_ps_line(struct process_table *self, char *buf) {

@@ -5,7 +5,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-const char *file = "./logger.util";
+char *file = "./logger.util";
 
 int main() {
   int fd[2];

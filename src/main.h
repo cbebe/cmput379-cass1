@@ -14,17 +14,6 @@
 #define remove_newline(line) line[strcspn(line, "\n")] = '\0'
 #define TERMINAL isatty(fileno(stdin))
 
-void print_resource_usage();
-
-#define wait_and_exit()         \
-  do {                          \
-    int status = 0;             \
-    wait(&status);              \
-    printf("Resources used\n"); \
-    print_resource_usage();     \
-    exit(0);                    \
-  } while (0)
-
 #define throw(message)        \
   do {                        \
     fprintf(stderr, message); \

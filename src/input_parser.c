@@ -11,6 +11,8 @@
     return 0;                      \
   } while (0)
 
+void wait_and_exit();
+
 /**
  * Splits input by whitespace and verifies validity
  * Returns 1 for valid input, 0 for invalid

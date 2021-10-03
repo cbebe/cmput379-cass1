@@ -13,6 +13,7 @@ void resume_job(struct process_table *table, int pid);
 void suspend_job(struct process_table *table, int pid);
 void reap_children(struct process_table *table);
 void run_command(struct process_table *table, struct parsed_input *input);
+void wait_and_exit();
 
 // parser functions
 int get_input(struct parsed_input *input);

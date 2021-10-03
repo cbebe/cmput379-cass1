@@ -25,7 +25,7 @@ $(BUILD)/%.o: src/%.c $(BUILD)
 	gcc $(CFLAGS) -o $@ -c $<
 
 $(BUILD):
-	mkdir $<
+	mkdir $@
 
 clean:
 	rm -f shell379 $(UTIL) input output
