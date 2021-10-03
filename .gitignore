@@ -3,10 +3,7 @@ build
 
 # executables
 shell379
-runner
-sleeper
-logger
-piper
+*.util
 
 # object files
 *.o

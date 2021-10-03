@@ -5,6 +5,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+const char *file = "./logger.util";
+
 int main() {
   int fd[2];
   int od[2];
@@ -29,7 +31,7 @@ int main() {
       close(od[0]);
       dup2(od[1], STDOUT_FILENO);
       close(od[1]);
-      char *args[] = {"./logger", NULL};
+      char *args[] = {file, NULL};
       execvp(args[0], args);
       break;
     default: {

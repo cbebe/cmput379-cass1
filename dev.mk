@@ -1,5 +1,11 @@
-CFLAGS = -Wall -Wextra
-UTIL=runner sleeper piper logger
+CFLAGS=-Wall -Wextra
+UTIL_SRC=runner sleeper piper logger writer
+UTIL=$(UTIL_SRC:%=%.util)
+
+SRC=main process_table process input_parser
+OBJ=$(SRC:%=build/%.o)
+
+BUILD=build
 
 all: shell379 $(UTIL) input
 
@@ -7,29 +13,20 @@ run: shell379 $(UTIL)
 	./shell379
 
 input:
-	echo "15\n200000000" >input
+	echo "15\n2000000" >input
 
-runner: util/runner.c
+%.util: util/%.c
 	gcc $(CFLAGS) -o $@ $<
 
-piper: util/piper.c
-	gcc $(CFLAGS) -o $@ $<
-
-logger: util/logger.c
-	gcc $(CFLAGS) -o $@ $<
-
-sleeper: util/sleeper.c
-	gcc $(CFLAGS) -o $@ $<
-
-shell379: build/main.o build/process_table.o build/process.o build/input_parser.o
+shell379: $(OBJ)
 	gcc $(CFLAGS) -o $@ $^
 
-build/%.o: src/%.c build
+$(BUILD)/%.o: src/%.c $(BUILD)
 	gcc $(CFLAGS) -o $@ -c $<
 
-build:
-	mkdir build
+$(BUILD):
+	mkdir $<
 
 clean:
 	rm -f shell379 $(UTIL) input output
-	rm -rf build
+	rm -rf $(BUILD)
