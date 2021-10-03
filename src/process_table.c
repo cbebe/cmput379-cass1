@@ -87,10 +87,13 @@ void show_jobs(struct process_table *self) {
   printf("Running processes:\n");
   if (self->num_processes > 0) {
     get_ps_output(self);
-    printf(" #    PID S SEC COMMAND\n");
+    printf(" #      PID S SEC COMMAND\n");
     for (int i = 0; i < self->num_processes; ++i) {
       struct process *p = &self->processes[i];
-      printf("%2d: %5d %c%4d %s\n", i, p->pid, p->status, p->time, p->cmd);
+      // Max PID in undergraduate machines:
+      // cat /proc/sys/kernel/pid_max
+      // 4194304
+      printf("%2d: %7d %c%4d %s\n", i, p->pid, p->status, p->time, p->cmd);
     }
   }
 
