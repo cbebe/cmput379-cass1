@@ -5,27 +5,30 @@
 #include <stdlib.h>  // exit
 #include <unistd.h>  // sleep
 
+// forward declarations
+
 // process table functions
-void show_jobs(struct process_table *table);
-void wait_job(struct process_table *table, int pid);
-void kill_job(struct process_table *table, int pid);
-void resume_job(struct process_table *table, int pid);
-void suspend_job(struct process_table *table, int pid);
-void reap_children(struct process_table *table);
-void run_command(struct process_table *table, struct parsed_input *input);
+void show_jobs(struct process_table *);
+void wait_job(struct process_table *, int);
+void kill_job(struct process_table *, int);
+void resume_job(struct process_table *, int);
+void suspend_job(struct process_table *, int);
+void reap_children(struct process_table *);
+void run_command(struct process_table *, struct parsed_input *);
 void wait_and_exit();
 
 // parser functions
-int get_input(struct parsed_input *input);
-int get_int(struct parsed_input *input, int *integer);
+int get_input(struct parsed_input *);
+int get_int(struct parsed_input *, int *);
 
 /**
- * bool macro for matching strings
+ * Bool macro for matching strings
  */
 #define match(s1, s2) strncmp(s1, s2, MAX_LENGTH) == 0
 
 /**
- * This is how i start writing unreadable c code
+ * Does a table command after requiring a PID
+ * This is how I start writing unreadable C code
  */
 #define table_command(command, table, input)             \
   do {                                                   \
@@ -39,6 +42,9 @@ struct process_table table = {.num_processes = 0};
 
 void sigchld_handler() { reap_children(&table); }
 
+/**
+ * Wait for user input and execute
+ */
 void run(struct process_table *table) {
   struct parsed_input input = {.tokc = 0};
   if (!get_input(&input)) return;
@@ -65,6 +71,7 @@ void run(struct process_table *table) {
       run_command(table, &input);  // call UNIX sleep command
     }
   } else
+    // not a built-in command, try to execute program
     run_command(table, &input);
 }
 

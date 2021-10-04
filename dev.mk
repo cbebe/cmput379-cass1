@@ -1,3 +1,5 @@
+# Developer makefile
+
 CFLAGS=-Wall -Wextra
 UTIL_SRC=runner sleeper piper logger writer
 UTIL=$(UTIL_SRC:%=%.util)
@@ -26,6 +28,12 @@ $(BUILD)/%.o: src/%.c $(BUILD)
 
 $(BUILD):
 	mkdir $@
+
+# runs the dev.mk clean target 
+# and the default makefile clean target
+zip: clean
+	$(MAKE) clean 
+	zip -r ../Assignment1.zip .
 
 clean:
 	rm -f shell379 $(UTIL) input output

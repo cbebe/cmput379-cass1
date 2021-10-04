@@ -1,5 +1,5 @@
-#ifndef MAIN_H_
-#define MAIN_H_
+#ifndef SRC_MAIN
+#define SRC_MAIN
 
 #include <stdio.h>     // printf, fprintf, fileno, stdin, stderr
 #include <string.h>    // strncmp, strcspn
@@ -11,9 +11,19 @@
 #define MAX_ARGS 7         // Max number of arguments to a command
 #define MAX_PT_ENTRIES 32  // Max entries in the Process Table
 
+/**
+ * Removes the newline from the end of a string
+ */
 #define remove_newline(line) line[strcspn(line, "\n")] = '\0'
+/**
+ * Bool value used for displaying the prompt
+ */
 #define TERMINAL isatty(fileno(stdin))
 
+/**
+ * Prints the given error message and returns from the function
+ * Probably a bad syntactic macro
+ */
 #define throw(message)        \
   do {                        \
     fprintf(stderr, message); \
@@ -38,11 +48,22 @@ struct process_table {
 };
 
 enum process_type {
-  FOREGROUND = 0,
-  BACKGROUND = 1,
+  FOREGROUND = 0,  // run command and wait for it right away
+  BACKGROUND = 1,  // run command in background
 };
 
-// struct for storing options when running a command
+/**
+ * Struct for the input parsed from the user
+ */
+struct parsed_input {
+  char cmd[LINE_LENGTH];            // the entire command
+  int tokc;                         // token count
+  char tokv[MAX_ARGS][MAX_LENGTH];  // token vector
+};
+
+/**
+ * Struct for storing options when running a command
+ */
 struct cmd_options {
   char *cmd;  // the entire command
 
@@ -57,10 +78,4 @@ struct cmd_options {
   enum process_type bg;
 };
 
-struct parsed_input {
-  char cmd[LINE_LENGTH];            // the entire command
-  int tokc;                         // token count
-  char tokv[MAX_ARGS][MAX_LENGTH];  // token vector
-};
-
-#endif  // MAIN_H_
+#endif /* SRC_MAIN */

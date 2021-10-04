@@ -10,6 +10,9 @@
 #define WRITE_BITMASK O_WRONLY | O_CREAT | O_TRUNC
 #define READ_BITMASK O_RDONLY
 
+/**
+ * Redirect IO to a file
+ */
 int redirect(const char *file, int permissions, int stat, int fileno) {
   int fd = open(file, permissions, stat);
   if (fd < 0) {
@@ -23,12 +26,12 @@ int redirect(const char *file, int permissions, int stat, int fileno) {
 
 void child_exec(struct cmd_options *options) {
   if (options->to_file) {
-    if (!redirect(options->out_file, WRITE_BITMASK, S_IWUSR, STDOUT_FILENO))
+    // give everyone read and write permissions on the created file
+    if (!redirect(options->out_file, WRITE_BITMASK, 0666, STDOUT_FILENO))
       _exit(1);
   }
   if (options->from_file) {
-    if (!redirect(options->in_file, READ_BITMASK, S_IRUSR, STDIN_FILENO))
-      _exit(1);
+    if (!redirect(options->in_file, READ_BITMASK, 0664, STDIN_FILENO)) _exit(1);
   }
 
   // child process

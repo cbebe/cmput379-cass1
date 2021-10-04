@@ -14,6 +14,7 @@ void delete_cmd_options(struct cmd_options *options);
 
 /**
  * Send signal to pid, perror and returns from function if it fails
+ * This is probably the worst syntactic macro by far
  */
 #define send_signal(pid, signal, message) \
   if (kill(pid, signal) != 0) {           \
@@ -21,10 +22,9 @@ void delete_cmd_options(struct cmd_options *options);
     return;                               \
   }
 
-// process functions
-void child_exec(struct cmd_options *options);
-void parent_exec(struct process_table *self, struct cmd_options *options,
-                 int pid);
+// forward declaration of process functions
+void child_exec(struct cmd_options *);
+void parent_exec(struct process_table *, struct cmd_options *, int);
 
 int get_job(struct process_table *self, int pid) {
   for (int i = 0; i < self->num_processes; ++i) {
@@ -34,6 +34,9 @@ int get_job(struct process_table *self, int pid) {
   return -1;
 }
 
+/**
+ * Prints the total processor usage of the shell's children
+ */
 void print_resource_usage() {
   struct rusage usage;
   getrusage(RUSAGE_CHILDREN, &usage);
@@ -59,7 +62,6 @@ void wait_and_exit() {
 void process_ps_line(struct process_table *self, char *buf) {
   char *tok = strtok(buf, " ");  // PID
   pid_t pid = atoi(tok);
-  strtok(NULL, " ");  // TTY, token not needed
   // search process table for ps entry
   for (int j = 0; j < self->num_processes; ++j) {
     if (self->processes[j].pid == pid) {
@@ -72,9 +74,12 @@ void process_ps_line(struct process_table *self, char *buf) {
   }
 }
 
+/**
+ * Get output from `ps` command and process each line
+ */
 void get_ps_output(struct process_table *self) {
   // https://stackoverflow.com/questions/646241/c-run-a-system-command-and-get-output
-  FILE *fp = popen("ps", "r");
+  FILE *fp = popen("ps -o pid,time", "r");
   if (fp == NULL) {
     printf("Failed to run command\n");
     exit(1);  // no ps no life
